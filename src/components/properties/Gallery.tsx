@@ -1,0 +1,10 @@
+"use client";
+import Image from "next/image";
+import { useState, useEffect } from "react";
+const pool=["photo-1600596542815-ffad4c1539a9","photo-1613490493576-7fde63acd811","photo-1512917774080-9991f1c4c750","photo-1600585154340-be6161a56a0c","photo-1545324418-cc1a3fa10c00","photo-1564013799919-ab600027ffc6"];
+export default function Gallery({main,title,seed}:{main:string;title:string;seed:number}){
+ const imgs=[main,...[1,2,3].map(k=>`https://images.unsplash.com/${pool[(seed+k)%6]}?auto=format&fit=crop&w=1200&q=80`)];
+ const [i,setI]=useState(0);const [full,setFull]=useState(false);
+ useEffect(()=>{if(!full)return;const k=(e:KeyboardEvent)=>{if(e.key==="Escape")setFull(false);};window.addEventListener("keydown",k);return ()=>window.removeEventListener("keydown",k);},[full]);
+ return <div><button aria-label="View full screen" onClick={()=>setFull(true)} className="relative block aspect-[16/10] w-full overflow-hidden"><Image key={imgs[i]} src={imgs[i]} alt={`${title}, photo ${i+1}`} fill priority sizes="(min-width:1024px) 60vw,100vw" className="object-cover"/></button>
+  <div className="mt-2 grid grid-cols-4 gap-2">{imgs.map((s,k)=><button key={k} aria-label={`Show photo ${k+1}`} aria-current={k===i} onClick={()=>setI(k)} className={`relative aspect-video overflow-hidden ${k===i?"ring-2 ring-matte":"opacity-70"}`}><Image src={s} alt="" fill sizes="15vw" className="object-cover"/></button>)}</div>{full&&<div role="dialog" aria-modal="true" aria-label="Photo viewer" className="fixed inset-0 z-[70] flex items-center justify-center bg-matte/95 p-4"><div className="relative h-[80vh] w-full max-w-5xl"><Image src={imgs[i]} alt={`${title}, photo ${i+1}`} fill sizes="100vw" className="object-contain"/></div><button className="absolute right-4 top-4 text-ivory underline" onClick={()=>setFull(false)}>Close</button><button className="absolute left-4 text-3xl text-ivory" aria-label="Previous photo" onClick={()=>setI((i+3)%4)}>‹</button><button className="absolute right-4 text-3xl text-ivory" aria-label="Next photo" onClick={()=>setI((i+1)%4)}>›</button></div>}</div>;}
