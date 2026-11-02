@@ -1,25 +1,31 @@
 "use client";
 import { useRef, useEffect, useState } from "react";
 import Link from "next/link";
-import { getProperties } from "@/services/propertyService";
+import { filterProperties } from "@/services/propertyService";
+import { useStore } from "@/lib/store";
 import type { Property } from "@/types";
 import { inr } from "@/lib/format";
 type Msg={role:"user"|"assistant";text:string;results?:Property[]};
-const prompts=["Show me 3 BHK properties under ₹1 Crore near IT hubs","Villas in Kokapet","2 BHK apartments for rent"];
+const prompts=["Show me 3 BHK properties under ₹1 Crore near IT hubs","Villas in Kokapet","2 BHK apartments for rent","Villas with a swimming pool"];
 // Replace askAssistant with a call to the Python AI service later.
-async function askAssistant(q:string):Promise<Msg>{
+async function askAssistant(q:string,list:Property[]):Promise<Msg>{
  await new Promise(r=>setTimeout(r,900));
  const bhk=q.match(/(\d)\s*bhk/i)?.[1]; const cr=q.match(/under\s*₹?\s*([\d.]+)\s*(crore|cr|lakh|l)/i);
  const max=cr?Number(cr[1])*(/cr/i.test(cr[2])?1e7:1e5):undefined;
- let r=await getProperties({bhk:bhk?Number(bhk):undefined,maxPrice:max,listing:/rent/i.test(q)?"Rent":undefined,category:/villa/i.test(q)?"Villa":"All"});
+ const catMap:[RegExp,Property["category"]][]=[[/villa/i,"Villa"],[/apartment|flat/i,"Apartment"],[/house/i,"Independent House"],[/plot|land/i,"Residential Plot"],[/commercial|office/i,"Commercial"]];
+ const cat=catMap.find(([re])=>re.test(q))?.[1]??"All";
+ let r=filterProperties(list,{bhk:bhk?Number(bhk):undefined,maxPrice:max,listing:/rent/i.test(q)?"Rent":undefined,category:cat});
  const loc=["Gachibowli","Kokapet","Narsingi","Kondapur","Madhapur","Tellapur"].find(l=>q.toLowerCase().includes(l.toLowerCase()));
  if(loc) r=r.filter(p=>p.location.includes(loc));
+ const am=([["pool","Swimming Pool"],["gym","Gym"],["clubhouse","Clubhouse"],["parking","Covered Parking"],["security","Security"],["garden","Landscaped Garden"],["ev charging","EV Charging"],["power backup","Power Backup"]] as [string,string][]).filter(([k])=>q.toLowerCase().includes(k)).map(([,v])=>v);
+ if(am.length) r=r.filter(p=>am.every(a=>p.amenities.includes(a)));
  return r.length?{role:"assistant",text:`I found ${r.length} matching ${r.length>1?"properties":"property"}.`,results:r.slice(0,3)}:{role:"assistant",text:"Nothing matches that yet. Try a higher budget or a different area."};
 }
 export default function Assistant(){
+ const {properties}=useStore();
  const [msgs,setMsgs]=useState<Msg[]>([]); const [text,setText]=useState(""); const [busy,setBusy]=useState(false); const end=useRef<HTMLDivElement>(null);
  useEffect(()=>{end.current?.scrollIntoView({behavior:"smooth"});},[msgs,busy]);
- const send=async(q:string)=>{if(!q.trim()||busy)return;setText("");setMsgs(m=>[...m,{role:"user",text:q}]);setBusy(true);const a=await askAssistant(q);setMsgs(m=>[...m,a]);setBusy(false);};
+ const send=async(q:string)=>{if(!q.trim()||busy)return;setText("");setMsgs(m=>[...m,{role:"user",text:q}]);setBusy(true);const a=await askAssistant(q,properties);setMsgs(m=>[...m,a]);setBusy(false);};
  return <div className="mx-auto flex min-h-[80vh] max-w-3xl flex-col px-5 py-10">
   <div className="flex items-center justify-between"><h1 className="font-serif text-4xl">Property assistant</h1>{msgs.length>0&&<button className="text-sm underline" onClick={()=>setMsgs([])}>Clear conversation</button>}</div>
   <div className="mt-6 flex-1 space-y-4" aria-live="polite">

@@ -4,4 +4,5 @@ import { posts } from "@/data/blogs";
 export function generateStaticParams(){return posts.map(p=>({slug:p.slug}));}
 export default function Post({params}:{params:{slug:string}}){const p=posts.find(x=>x.slug===params.slug);if(!p)notFound();
  return <article className="mx-auto max-w-2xl px-5 py-14"><Link href="/blog" className="text-sm underline">All insights</Link><p className="mt-6 text-sm text-slate">{p.category}</p><h1 className="mt-1 font-serif text-4xl">{p.title}</h1>
- <div className="mt-8 space-y-5 leading-relaxed text-charcoal/80">{p.body.map((t,i)=><p key={i}>{t}</p>)}</div></article>;}
+ <div className="mt-8 space-y-5 leading-relaxed text-charcoal/80">{p.body.map((t,i)=><p key={i}>{t}</p>)}</div>
+ <h2 className="mt-14 font-serif text-2xl">Related articles</h2><ul className="mt-4 space-y-3">{[...posts.filter(x=>x.slug!==p.slug&&x.category===p.category),...posts.filter(x=>x.slug!==p.slug&&x.category!==p.category)].slice(0,3).map(r=><li key={r.slug}><Link href={`/blog/${r.slug}`} className="underline">{r.title}</Link></li>)}</ul></article>;}
