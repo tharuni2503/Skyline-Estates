@@ -5,11 +5,12 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { visitSchema, type VisitInput } from "@/lib/schemas";
 import { bookVisit } from "@/services/visitService";
 import { useToast } from "@/lib/toast";
-import { properties } from "@/data/properties";
+import { useStore } from "@/lib/store";
 const times=["10:00 AM","12:00 PM","3:00 PM","5:00 PM"];
 export default function VisitForm({propertyId=""}:{propertyId?:string}){
  const {register,handleSubmit,reset,formState:{errors,isSubmitting}}=useForm<VisitInput>({resolver:zodResolver(visitSchema),defaultValues:{propertyId}});
  const toast=useToast();
+ const {properties}=useStore();
  const [done,setDone]=useState<string|null>(null);
  const [fail,setFail]=useState(false);
  const submit=async(d:VisitInput)=>{setFail(false);try{const r=await bookVisit(d);setDone(r.id);toast("Visit requested");reset();}catch{setFail(true);}};

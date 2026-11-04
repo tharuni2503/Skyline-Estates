@@ -1,12 +1,16 @@
-export default function Extras({location}:{location:string}){
+import ContactForm from "@/components/forms/ContactForm";
+import { PHONE } from "@/lib/contact";
+const NEARBY:Record<string,string[]>={Gachibowli:["Indian School of Business, 3 km","Gachibowli metro corridor, 2 km","Hospitals, 3.5 km","Shopping mall, 6 km"],Kokapet:["International schools, 2 km","Financial District, 5 km","Neopolis open spaces, 1 km","Multi-speciality hospital, 6 km"],Narsingi:["Outer Ring Road exit, 1 km","Lakeside walking trails, 2 km","Schools, 1.5 km","Hospital, 4 km"],"Financial District":["Office towers, 1 km","Food courts and cafes, 1.5 km","Schools, 3 km","Hospital, 4 km"]};
+const FALLBACK=["International school, 1.5 km","Multi-speciality hospital, 3 km","Metro or shuttle stop, 2 km","Shopping mall, 4 km"];
+export default function Extras({location,children}:{location:string;children?:React.ReactNode}){
  const area=location.split(",")[0];
  return <>
-  <h2 className="mt-10 font-serif text-2xl">Floor plan</h2>
-  <svg viewBox="0 0 400 240" role="img" aria-label="Indicative floor plan" className="mt-3 w-full max-w-lg border border-line bg-white"><g fill="none" stroke="#111" strokeWidth="2"><rect x="10" y="10" width="380" height="220"/><path d="M200 10V130M10 130H390M290 130V230"/></g><g fill="#6B7280" fontSize="12"><text x="70" y="75">Living</text><text x="270" y="75">Bedroom</text><text x="80" y="185">Kitchen</text><text x="195" y="185">Dining</text><text x="310" y="185">Bath</text></g></svg>
-  <p className="mt-1 text-xs text-slate">Indicative layout. Final plans are shared by the agent.</p>
-  <h2 className="mt-10 font-serif text-2xl">Location</h2>
-  <div className="mt-3 flex aspect-video items-center justify-center bg-line text-sm text-slate">Map placeholder for {area}</div>
+  {children}
+  <h2 className="mt-14 border-t border-line pt-6 font-serif text-3xl">Location</h2>
+  <iframe title={`Map of ${area}, Hyderabad`} loading="lazy" referrerPolicy="no-referrer-when-downgrade" src={`https://maps.google.com/maps?q=${encodeURIComponent(area+", Hyderabad")}&output=embed`} className="mt-3 aspect-video w-full border-0"/>
+  <p className="mt-1 text-xs text-slate">Map shows the locality, not the exact address.</p>
   <h3 className="mt-6 font-serif text-xl">Nearby</h3>
-  <ul className="mt-2 grid gap-2 text-sm sm:grid-cols-2">{["International school, 1.5 km","Multi-speciality hospital, 3 km","Metro or shuttle stop, 2 km","Shopping mall, 4 km"].map(x=><li key={x} className="border-b border-line py-2">{x}</li>)}</ul>
-  <h2 className="mt-10 font-serif text-2xl">Your agent</h2>
-  <p className="mt-2">Lakshmi Prasad, Senior Advisor, {area}</p><a href="tel:+914000000000" className="mt-2 inline-block text-sm underline">Contact agent</a></>;}
+  <ul className="mt-2 grid gap-2 text-sm sm:grid-cols-2">{(NEARBY[area]??FALLBACK).map(x=><li key={x} className="border-b border-line py-2">{x}</li>)}</ul>
+  <h2 className="mt-14 border-t border-line pt-6 font-serif text-3xl">Your agent</h2>
+  <div className="mt-4 flex items-center gap-4 bg-white p-5"><span className="flex h-14 w-14 items-center justify-center rounded-full bg-matte font-serif text-lg text-ivory" aria-hidden="true">LP</span><div><p className="font-serif text-xl">Lakshmi Prasad</p><p className="text-sm text-slate">Senior advisor, {area}</p>{PHONE&&<a href={`tel:${PHONE}`} className="mt-1 mr-4 inline-block text-sm underline">Call agent</a>}<a href="#contact-agent" className="mt-1 inline-block text-sm underline">Message agent</a></div></div>
+  <div id="contact-agent" className="mt-4 scroll-mt-24"><ContactForm/></div></>;}
